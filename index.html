@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Contador de días, registro de logros, frases y barreras para dejar el porno y recuperar el control.">
+<meta name="theme-color" content="#3f6b4f">
+<title>Dueño de Sí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: columna única móvil-primero (máx 720px), pestañas fijas arriba, tarjetas solo donde hay un objeto propio */
+:root{
+  --bg:#eef0ee; --surface:#fbfcfb; --ink:#1c2420; --muted:#5b6861; --line:#d3d9d5;
+  --accent:#3f6b4f; --accent-soft:#dfe9e2; --accent-ink:#ffffff;
+  --warn:#a8552f; --warn-soft:#f4e3da; --gold:#8d6f22; --gold-soft:#f1e8cf;
+  --anno:#2f5fd0;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-quote:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614; --surface:#1a201d; --ink:#e6ebe7; --muted:#97a59d; --line:#2e3833;
+  --accent:#82b391; --accent-soft:#223129; --accent-ink:#0f1411;
+  --warn:#e3906a; --warn-soft:#3a251c; --gold:#d6b664; --gold-soft:#332b17; --anno:#8fb0ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a201d; --ink:#e6ebe7; --muted:#97a59d; --line:#2e3833;
+  --accent:#82b391; --accent-soft:#223129; --accent-ink:#0f1411;
+  --warn:#e3906a; --warn-soft:#3a251c; --gold:#d6b664; --gold-soft:#332b17; --anno:#8fb0ff; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+h2{font-size:1.65rem;line-height:1.1}
+h3{font-size:1.2rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Cabecera y pestañas */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 6px}
+.brand h1{font-size:1.5rem;text-transform:uppercase;letter-spacing:.06em}
+.brand h1 span{color:var(--accent)}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid transparent;background:none;padding:6px 12px;border-radius:999px;cursor:pointer;font-weight:500;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tab.sos{color:var(--warn);border-color:var(--warn)}
+.tab.sos[aria-selected="true"]{background:var(--warn);color:var(--surface)}
+.ghost{background:none;border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.8rem;color:var(--muted)}
+
+section.panel{display:grid;gap:20px;padding-top:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.line{background:none;border:1px solid var(--line);color:var(--ink)}
+.btn.warn{background:none;border:1px solid var(--warn);color:var(--warn)}
+.btn.warn.solid{background:var(--warn);color:var(--surface)}
+.btn[disabled]{opacity:.55;cursor:default}
+
+/* Banner ejemplo */
+.demo{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--gold-soft);border:1px dashed var(--gold);border-radius:12px;padding:10px 14px;font-size:.88rem}
+
+/* Contador */
+.counter{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.big{font-family:var(--f-display);font-weight:700;font-size:clamp(5rem,22vw,8.5rem);line-height:.85;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.big small{font-size:.28em;font-weight:600;letter-spacing:.04em;margin-left:6px;color:var(--muted)}
+.stats{display:grid;gap:10px;text-align:right}
+.stat b{display:block;font-family:var(--f-display);font-size:1.7rem;line-height:1;font-variant-numeric:tabular-nums}
+.progress{height:8px;background:var(--accent-soft);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.confirm{display:grid;gap:10px;background:var(--warn-soft);border-radius:10px;padding:12px}
+
+/* Frase */
+blockquote{margin:0;font-family:var(--f-quote);font-style:italic;font-size:1.25rem;line-height:1.4;text-wrap:balance}
+cite{display:block;margin-top:8px;font-style:normal;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+/* Calendario */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{aspect-ratio:1;max-width:100%;border-radius:6px;background:var(--line);opacity:.55;display:grid;place-items:center;font-size:.68rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+.day.ok{background:var(--accent);opacity:1;color:var(--accent-ink)}
+.day.rel{background:var(--warn);opacity:1;color:var(--surface)}
+.day.today{outline:2px solid var(--ink);outline-offset:1px}
+.legend{display:flex;gap:14px;font-size:.78rem;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* Hitos */
+.miles{display:grid;gap:0}
+.mile{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.mile:first-child{border-top:0}
+.mile b{font-family:var(--f-display);font-size:1.5rem;line-height:1;color:var(--muted);font-variant-numeric:tabular-nums}
+.mile b small{display:block;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase}
+.mile.done b{color:var(--gold)}
+.mile.next{background:var(--accent-soft);margin-inline:-18px;padding-inline:18px}
+.mile p{font-size:.9rem}
+
+/* Formulario */
+form{display:grid;gap:16px}
+.field{display:grid;gap:6px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+input[type=date],input[type=text],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+textarea{min-height:76px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg label,.chips label{cursor:pointer}
+.seg input,.chips input{position:absolute;opacity:0;pointer-events:none}
+.seg span,.chips span{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:.88rem}
+.seg input:checked+span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg input.r:checked+span{background:var(--warn);border-color:var(--warn);color:var(--surface)}
+.seg input:focus-visible+span,.chips input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips input:checked+span{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.rangeval{font-family:var(--f-display);font-size:1.2rem;font-variant-numeric:tabular-nums}
+.toast{font-size:.88rem;color:var(--accent);font-weight:600}
+
+/* Historial */
+.log{display:grid;gap:0}
+.entry{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.entry:first-child{border-top:0}
+.pill{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:3px 9px;align-self:start;white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)}
+.pill.rel{background:var(--warn-soft);color:var(--warn)}
+.entry .meta{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.entry p{font-size:.92rem;min-width:0;overflow-wrap:anywhere}
+
+/* Escudo */
+.check{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.check:first-of-type{border-top:0}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--accent)}
+.check b{display:block;font-weight:600}
+.check small{color:var(--muted);font-size:.85rem}
+.score{font-family:var(--f-display);font-size:2.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.ifthen{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center}
+.ifthen .k{font-family:var(--f-display);font-weight:600;text-transform:uppercase;font-size:.95rem;color:var(--accent)}
+
+/* Frases */
+.phrases{display:grid;gap:0}
+.phrase{padding:12px 0;border-top:1px solid var(--line);font-family:var(--f-quote);font-style:italic}
+.phrase:first-child{border-top:0}
+.phrase cite{margin-top:2px}
+
+/* Ciencia */
+.myth{display:grid;gap:6px;padding:14px 0;border-top:1px solid var(--line)}
+.myth:first-of-type{border-top:0}
+.myth .m{font-weight:600;text-decoration:line-through;text-decoration-color:var(--warn);text-decoration-thickness:2px}
+.tag{display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:1px}
+.tag.no{background:var(--warn-soft);color:var(--warn)}
+.tag.si{background:var(--accent-soft);color:var(--accent)}
+
+/* SOS */
+.sos-card{text-align:center;display:grid;gap:16px;justify-items:center}
+.ring{width:min(240px,70vw);aspect-ratio:1;max-width:100%;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .t{position:absolute;inset:0;display:grid;place-content:center;gap:2px}
+.ring .t b{font-family:var(--f-display);font-size:3.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.breath{font-family:var(--f-display);font-size:1.4rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);min-height:1.6em}
+.alts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;width:100%;text-align:left}
+.alts div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem}
+
+footer{margin-top:28px;font-size:.84rem;color:var(--muted);display:grid;gap:6px}
+footer a{color:var(--accent)}
+
+/* Anotaciones de wireframe */
+.anno{display:none}
+body.show-anno .anno{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:.7rem;color:var(--anno);border:1px dashed var(--anno);border-radius:4px;padding:1px 6px;margin-bottom:6px;width:max-content;max-width:100%}
+body.show-anno .card{outline:1px dashed var(--anno);outline-offset:3px}
+
+@media (max-width:460px){.counter{grid-template-columns:1fr}.stats{text-align:left;grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Dueño <span>de Sí</span></h1>
+      <button class="ghost" id="annoBtn" type="button" aria-pressed="false">Ver anotaciones</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="hoy" aria-selected="true">Hoy</button>
+      <button class="tab" role="tab" data-tab="registro">Registro</button>
+      <button class="tab" role="tab" data-tab="escudo">Escudo</button>
+      <button class="tab" role="tab" data-tab="frases">Frases</button>
+      <button class="tab" role="tab" data-tab="ciencia">Ciencia</button>
+      <button class="tab sos" role="tab" data-tab="sos">SOS impulso</button>
+    </nav>
+  </header>
+
+  <!-- ============ HOY ============ -->
+  <section class="panel" id="p-hoy">
+    <div class="demo" id="demoBar">
+      <span>Estás viendo <b>datos de ejemplo</b>. Empieza tu propio registro cuando quieras.</span>
+      <button class="btn" type="button" id="startReal">Empezar mi registro hoy</button>
+    </div>
+
+    <div class="card">
+      <span class="anno">A1 · Contador de racha + estadísticas</span>
+      <div class="counter">
+        <div>
+          <div class="label">Días seguidos</div>
+          <div class="big" id="days">0<small>días</small></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="label">Mejor racha</span><b id="best">0</b></div>
+          <div class="stat"><span class="label">Días limpios totales</span><b id="total">0</b></div>
+        </div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="row" style="justify-content:space-between"><span class="label" id="nextLbl">Próximo hito</span><span class="muted" style="font-size:.85rem" id="nextLeft"></span></div>
+        <div class="progress"><i id="nextBar" style="width:0"></i></div>
+      </div>
+    </div>
+
+    <div class="card" style="display:grid;gap:12px">
+      <span class="anno">A2 · Check-in diario (acción principal)</span>
+      <h3>¿Cómo ha ido hoy?</h3>
+      <div class="row">
+        <button class="btn" type="button" id="cleanBtn">Hoy, día limpio</button>
+        <button class="btn line" type="button" data-go="registro">Registro completo</button>
+        <button class="btn warn" type="button" id="relBtn">He recaído</button>
+      </div>
+      <div class="confirm" id="relConfirm" hidden>
+        <p>Una recaída es un dato, no una sentencia. Tu mejor racha se guarda y el contador vuelve a cero. ¿Confirmas?</p>
+        <div class="row">
+          <button class="btn warn solid" type="button" id="relYes">Sí, reiniciar</button>
+          <button class="btn line" type="button" id="relNo">Cancelar</button>
+        </div>
+      </div>
+      <p class="toast" id="todayMsg" aria-live="polite"></p>
+    </div>
+
+    <div class="card">
+      <span class="anno">A3 · Frase del día (rota cada día)</span>
+      <blockquote id="qotd"></blockquote>
+      <div class="row" style="margin-top:12px"><button class="ghost" type="button" id="qNext">Otra frase</button></div>
+    </div>
+
+    <div class="card">
+      <span class="anno">A4 · Calendario últimas 5 semanas</span>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px"><h3>Últimos 35 días</h3></div>
+      <div class="cal" id="cal"></div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Limpio</span><span><i style="background:var(--warn)"></i>Recaída</span><span><i style="background:var(--line)"></i>Sin registro</span></div>
+    </div>
+
+    <div class="card">
+      <span class="anno">A5 · Hitos del camino</span>
+      <h3 style="margin-bottom:6px">Hitos</h3>
+      <div class="miles" id="miles"></div>
+    </div>
+  </section>
+
+  <!-- ============ REGISTRO ============ -->
+  <section class="panel" id="p-registro" hidden>
+    <div class="card">
+      <span class="anno">B1 · Formulario del logro diario</span>
+      <h2 style="margin-bottom:14px">Registro del día</h2>
+      <form id="logForm">
+        <div class="grid2">
+          <div class="field"><label class="label" for="fDate">Fecha</label><input type="date" id="fDate" required></div>
+          <div class="field"><span class="label">Resultado</span>
+            <div class="seg">
+              <label><input type="radio" name="st" value="ok" id="stOk" checked><span>Día limpio</span></label>
+              <label><input type="radio" name="st" value="rel" id="stRel" class="r"><span>Recaída</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label class="label" for="fUrge">Intensidad del impulso hoy <span class="rangeval" id="vUrge">4</span>/10</label><input type="range" id="fUrge" min="0" max="10" value="4"></div>
+        <div class="field"><label class="label" for="fTrig">Disparador principal</label>
+          <select id="fTrig">
+            <option value="">Ninguno destacable</option><option>Aburrimiento</option><option>Estrés del trabajo</option><option>Soledad</option><option>Cansancio / poco sueño</option><option>Móvil en la cama</option><option>Alcohol</option><option>Discusión / frustración</option><option>Redes sociales</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="field"><span class="label">Qué hice en su lugar</span>
+          <div class="chips" id="fDid">
+            <label><input type="checkbox" value="Entrené" id="d1"><span>Entrené</span></label>
+            <label><input type="checkbox" value="Caminé" id="d2"><span>Caminé</span></label>
+            <label><input type="checkbox" value="Llamé a alguien" id="d3"><span>Llamé a alguien</span></label>
+            <label><input type="checkbox" value="Leí" id="d4"><span>Leí</span></label>
+            <label><input type="checkbox" value="Respiré / medité" id="d5"><span>Respiré / medité</span></label>
+            <label><input type="checkbox" value="Salí de la habitación" id="d6"><span>Salí de la habitación</span></label>
+            <label><input type="checkbox" value="Avancé un proyecto" id="d7"><span>Avancé un proyecto</span></label>
+            <label><input type="checkbox" value="Me fui a dormir" id="d8"><span>Me fui a dormir</span></label>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label class="label" for="fEn">Energía <span class="rangeval" id="vEn">3</span>/5</label><input type="range" id="fEn" min="1" max="5" value="3"></div>
+          <div class="field"><label class="label" for="fFo">Concentración <span class="rangeval" id="vFo">3</span>/5</label><input type="range" id="fFo" min="1" max="5" value="3"></div>
+          <div class="field"><label class="label" for="fSo">Sociabilidad <span class="rangeval" id="vSo">3</span>/5</label><input type="range" id="fSo" min="1" max="5" value="3"></div>
+          <div class="field"><label class="label" for="fSl">Horas de sueño</label><select id="fSl"><option>&lt; 6</option><option selected>6–7</option><option>7–8</option><option>&gt; 8</option></select></div>
+        </div>
+        <div class="field"><label class="label" for="fWin">Logro del día</label><input type="text" id="fWin" placeholder="Ej.: dejé el móvil fuera del cuarto y dormí del tirón"></div>
+        <div class="field"><label class="label" for="fLearn">Qué he aprendido / qué haré distinto</label><textarea id="fLearn" placeholder="Ej.: los domingos por la tarde son mi momento de riesgo; mañana quedo para caminar."></textarea></div>
+        <div class="row"><button class="btn" type="submit">Guardar registro</button><span class="toast" id="saveMsg" aria-live="polite"></span></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <span class="anno">B2 · Historial (más reciente primero)</span>
+      <h3 style="margin-bottom:6px">Historial</h3>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+
+  <!-- ============ ESCUDO ============ -->
+  <section class="panel" id="p-escudo" hidden>
+    <div class="card">
+      <span class="anno">C1 · Puntuación del escudo</span>
+      <div class="row" style="justify-content:space-between;align-items:end">
+        <div><h2>Tu escudo</h2><p class="muted">La fuerza de voluntad se cansa; el entorno no. Cada barrera cuenta.</p></div>
+        <div style="text-align:right"><div class="score" id="shieldScore">0/0</div><span class="label">barreras activas</span></div>
+      </div>
+      <div class="progress" style="margin-top:12px"><i id="shieldBar" style="width:0"></i></div>
+    </div>
+    <div class="card" id="shieldList"><span class="anno">C2 · Checklist de barreras por categoría</span></div>
+    <div class="card">
+      <span class="anno">C3 · Planes si-entonces (editables)</span>
+      <h3 style="margin-bottom:4px">Mis planes si-entonces</h3>
+      <p class="muted" style="margin-bottom:14px;font-size:.9rem">Decide ahora qué harás en tus momentos de riesgo, para no tener que decidirlo con el impulso encima.</p>
+      <div class="ifthen" id="ifthen"></div>
+    </div>
+  </section>
+
+  <!-- ============ FRASES ============ -->
+  <section class="panel" id="p-frases" hidden>
+    <div class="card">
+      <span class="anno">D1 · Añadir frase propia</span>
+      <h2 style="margin-bottom:12px">Frases que ayudan</h2>
+      <form id="phForm" style="grid-template-columns:1fr auto;align-items:end">
+        <div class="field"><label class="label" for="phIn">Añade tu propia frase</label><input type="text" id="phIn" placeholder="Ej.: Hoy elijo a mi hijo, mi negocio y mi salud." required></div>
+        <button class="btn" type="submit">Añadir</button>
+      </form>
+    </div>
+    <div class="card"><span class="anno">D2 · Biblioteca (estoicos + propias)</span><div class="phrases" id="phrases"></div></div>
+  </section>
+
+  <!-- ============ CIENCIA ============ -->
+  <section class="panel" id="p-ciencia" hidden>
+    <div class="card">
+      <span class="anno">E1 · Mito vs ciencia</span>
+      <h2 style="margin-bottom:4px">Lo que dice la ciencia</h2>
+      <p class="muted" style="margin-bottom:8px">Motivación sin cuentos. Resumen del informe de investigación.</p>
+      <div class="myth"><p class="m">«A los 7 días la testosterona se dispara y te da superpoderes.»</p><p><span class="tag no">Falso</span>Un estudio chino de 2003 con 28 hombres vio un pico pasajero el día 7 que luego no se mantuvo. Fue retractado en 2021. No hay subida duradera.</p></div>
+      <div class="myth"><p class="m">«El porno te destruye el cerebro.»</p><p><span class="tag no">Exagerado</span>Hay correlaciones en estudios pequeños, sin causa demostrada. Lo que sí existe es el uso compulsivo: la OMS lo reconoce como trastorno de conducta sexual compulsiva (CIE-11, 6C72).</p></div>
+      <div class="myth"><p class="m">«Lo que importa es cuántas veces lo haces.»</p><p><span class="tag no">Falso</span>Importa la pérdida de control y el deterioro: no poder parar aunque quieras, dejar de lado sueño, pareja o trabajo.</p></div>
+      <div class="myth"><p class="m">«Sentir culpa significa que estás enganchado.»</p><p><span class="tag no">Matizable</span>Mucho malestar viene del choque con tus valores. Trabaja tus valores, no la vergüenza: la vergüenza intensa predice más recaídas.</p></div>
+    </div>
+    <div class="card">
+      <span class="anno">E2 · La dopamina barata</span>
+      <h3 style="margin-bottom:8px">La dopamina barata</h3>
+      <p>El porno activa el circuito de recompensa igual que la comida o la música. La trampa es la novedad infinita a un clic. En quienes lo usan de forma compulsiva, los estudios ven más <i>deseo</i> que <i>placer</i>: quieres más y disfrutas menos. Por eso cuesta parar, y por eso funciona poner fricción entre tú y la pantalla.</p>
+    </div>
+    <div class="card">
+      <span class="anno">E3 · Salud del hombre a los 50</span>
+      <h3 style="margin-bottom:8px">A partir de los 50</h3>
+      <div class="myth" style="border-top:0;padding-top:0"><p><span class="tag si">Con evidencia</span>Fuerza 2–3 días por semana, sueño regular y vida social mejoran ánimo, energía y autoestima, y reducen los estados que disparan el impulso.</p></div>
+      <div class="myth"><p><span class="tag si">Importante</span>Si hay problemas de erección, ve al médico. A esta edad son frecuentes las causas vasculares y hormonales, y a veces es una señal temprana de salud cardiovascular. No lo achaques solo al porno.</p></div>
+      <div class="myth"><p><span class="tag si">Funciona</span>Diseñar el entorno, planes si-entonces, dejar pasar el impulso 10–15 minutos y, si hace falta, terapia ACT o TCC con un profesional.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ SOS ============ -->
+  <section class="panel" id="p-sos" hidden>
+    <div class="card sos-card">
+      <span class="anno">F1 · Temporizador para surfear el impulso</span>
+      <h2>Un impulso no es una orden</h2>
+      <p class="muted">El impulso sube, llega al pico y baja. Solo tienes que aguantar diez minutos sin alimentarlo.</p>
+      <div class="ring">
+        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="8"/><circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="var(--warn)" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+        <div class="t"><b id="sosTime">10:00</b><span class="label">minutos</span></div>
+      </div>
+      <div class="breath" id="breath" aria-live="polite">Pulsa empezar</div>
+      <div class="row" style="justify-content:center">
+        <button class="btn warn solid" type="button" id="sosStart">Empezar 10 minutos</button>
+        <button class="btn line" type="button" id="sosReset">Reiniciar</button>
+      </div>
+    </div>
+    <div class="card">
+      <span class="anno">F2 · Acciones de rescate</span>
+      <h3 style="margin-bottom:10px">Mientras tanto, haz una</h3>
+      <div class="alts">
+        <div>Sal de la habitación donde estás</div><div>Deja el móvil en otra estancia</div><div>20 flexiones o sentadillas</div><div>Sal a caminar 10 minutos</div><div>Llama o escribe a alguien</div><div>Bebe un vaso de agua despacio</div><div>Relee tu logro de ayer</div><div>Escribe qué sientes ahora</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Tus datos se guardan solo en este navegador y en este dispositivo. No se envían a ningún sitio.</p>
+    <p>Si tras semanas de esfuerzo sigues sin control o hay malestar marcado, pide ayuda a un psicólogo o sexólogo colegiado: <a href="https://www.buscopsicologo.es/" target="_blank" rel="noopener">buscopsicologo.es</a> · <a href="https://fess.org.es/" target="_blank" rel="noopener">fess.org.es</a></p>
+  </footer>
+</div>
+
+<script>
+(function(){
+const KEY='duenodesi.v1';
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>ds(new Date());
+const addDays=(s,n)=>{const [y,m,d]=s.split('-').map(Number);const x=new Date(y,m-1,d+n);return ds(x);};
+const diff=(a,b)=>{const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number);return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5);};
+const fmt=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('es-ES',{weekday:'short',day:'numeric',month:'short'});};
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const QUOTES=[
+ ['Ningún hombre es libre si no es dueño de sí mismo.','Epicteto'],
+ ['No son las cosas las que nos perturban, sino las opiniones que tenemos sobre ellas.','Epicteto'],
+ ['Primero di qué quieres ser; después haz lo que tengas que hacer.','Epicteto'],
+ ['Mientras aplazamos la vida, la vida pasa.','Séneca'],
+ ['No es que tengamos poco tiempo, es que perdemos mucho.','Séneca'],
+ ['La felicidad de tu vida depende de la calidad de tus pensamientos.','Marco Aurelio'],
+ ['Cada mañana recuerda: hoy depende de ti cómo respondes.','Marco Aurelio (adaptado)'],
+ ['Un impulso no es una orden.','Dueño de Sí'],
+ ['El impulso es una ola: sube, rompe y baja. No tienes que nadar con ella.','Dueño de Sí'],
+ ['Una recaída es un dato, no una sentencia.','Dueño de Sí'],
+ ['Disciplina es elegir lo que más quieres por encima de lo que quieres ahora.','Dueño de Sí'],
+ ['Diseña tu entorno: la fuerza de voluntad se cansa, el entorno no.','Dueño de Sí'],
+ ['Diez minutos. Solo tienes que aguantar diez minutos.','Dueño de Sí'],
+ ['Cada «no» de hoy es un «sí» al hombre que quieres ser.','Dueño de Sí']
+];
+const MILES=[
+ [1,'Primer día. Has demostrado que puedes elegir.'],
+ [3,'Los primeros días son los de más ruido mental. Lo estás atravesando.'],
+ [7,'Una semana: has roto el ciclo semanal del hábito.'],
+ [14,'Dos semanas: tus disparadores ya tienen nombre. Revisa tu registro.'],
+ [30,'Un mes: el hábito nuevo empieza a ser rutina.'],
+ [60,'Dos meses: el entorno ya trabaja para ti.'],
+ [90,'Noventa días: ya no es una racha, es tu forma de vivir.']
+];
+const SHIELD=[
+ ['Entorno',[
+  ['m1','Móvil a cargar fuera del dormitorio','Ataca a la vez el disparador más común y el mal sueño.'],
+  ['m2','Ordenador en una zona común de la casa','Sin puerta cerrada, el impulso pierde terreno.'],
+  ['m3','Nada de pantallas en la cama','La cama es para dormir.']]],
+ ['Dispositivos',[
+  ['d1','Filtro DNS familiar en el router o el móvil','Por ejemplo CleanBrowsing Family u OpenDNS FamilyShield.'],
+  ['d2','Restricciones de contenido del sistema','iPhone: Tiempo de uso › Restricciones de contenido › Contenido web. Android: Bienestar digital.'],
+  ['d3','Que otra persona guarde el código de las restricciones','Si sabes la clave, la barrera es solo decorativa.'],
+  ['d4','Borrar marcadores, historial y apps «puerta»','Quita los atajos que tu mano ya conoce.']]],
+ ['Redes y contenido',[
+  ['r1','Dejar de seguir cuentas que actúan como puerta de entrada','Lo sugerente en redes suele ser el primer paso.'],
+  ['r2','Desactivar reproducción automática y búsqueda segura activada','Menos novedad infinita, menos dopamina barata.']]],
+ ['Rutina y personas',[
+  ['p1','Fuerza o ejercicio 3 veces por semana','Canaliza la activación y mejora el ánimo.'],
+  ['p2','Hora fija para acostarse','El cansancio es un disparador clásico.'],
+  ['p3','Una persona de confianza que conoce tu objetivo','Hablarlo quita fuerza a la vergüenza.']]]
+];
+const IFTHEN_DEF=['Si estoy en la cama con ganas…','Si llego a casa estresado del trabajo…','Si me aburro un domingo por la tarde…'];
+const THEN_DEF=['…me levanto, bebo agua y leo 10 minutos fuera del cuarto.','…me cambio y salgo a caminar 20 minutos.','…llamo a alguien o me voy al gimnasio.'];
+
+function demoState(){
+  const t=today(), logs={};
+  const trig=['Móvil en la cama','Aburrimiento','','Estrés del trabajo','','Cansancio / poco sueño',''];
+  for(let i=1;i<=12;i++){const d=addDays(t,-i);logs[d]={st:'ok',urge:Math.max(1,7-Math.floor(i/2)),trig:trig[i%7],did:i%2?['Entrené']:['Caminé','Leí'],en:3+(i%2),fo:3,so:3,sl:'7–8',win:i===3?'Dejé el móvil fuera del cuarto toda la semana':(i===7?'Una semana sin recaídas':''),learn:''};}
+  logs[addDays(t,-13)]={st:'rel',urge:9,trig:'Móvil en la cama',did:[],en:2,fo:2,so:2,sl:'< 6',win:'',learn:'Fue de madrugada con el móvil en la mesilla. Lo saco del dormitorio.'};
+  for(let i=14;i<=32;i++){logs[addDays(t,-i)]={st:'ok',urge:4,trig:'',did:['Entrené'],en:3,fo:3,so:3,sl:'6–7',win:'',learn:''};}
+  return {demo:true,start:addDays(t,-12),best:19,logs,shield:{m1:true,d4:true,p1:true},plans:IFTHEN_DEF.map((a,i)=>[a,THEN_DEF[i]]),phrases:[],qi:null};
+}
+function freshState(){return {demo:false,start:today(),best:0,logs:{},shield:{},plans:IFTHEN_DEF.map((a,i)=>[a,THEN_DEF[i]]),phrases:[],qi:null};}
+
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}
+if(!S||!S.logs)S=demoState();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+const streak=()=>Math.max(0,diff(S.start,today()));
+function relapse(date){
+  S.best=Math.max(S.best,diff(S.start,date));
+  S.start=date;
+}
+
+/* ---- render ---- */
+function renderHoy(){
+  $('#demoBar').hidden=!S.demo;
+  const n=streak(); S.best=Math.max(S.best,n);
+  $('#days').innerHTML=n+'<small>'+(n===1?'día':'días')+'</small>';
+  $('#best').textContent=S.best;
+  $('#total').textContent=Object.values(S.logs).filter(l=>l.st==='ok').length;
+  const next=MILES.find(m=>m[0]>n), prev=[...MILES].reverse().find(m=>m[0]<=n);
+  if(next){const from=prev?prev[0]:0;$('#nextLbl').textContent='Próximo hito: '+next[0]+' días';$('#nextLeft').textContent='faltan '+(next[0]-n);$('#nextBar').style.width=Math.round((n-from)/(next[0]-from)*100)+'%';}
+  else{$('#nextLbl').textContent='Todos los hitos superados';$('#nextLeft').textContent='';$('#nextBar').style.width='100%';}
+  const t=today(), l=S.logs[t];
+  $('#cleanBtn').disabled=!!(l&&l.st==='ok');
+  $('#cleanBtn').textContent=l&&l.st==='ok'?'Hoy ya está marcado':'Hoy, día limpio';
+  // calendario
+  let h='';for(let i=34;i>=0;i--){const d=addDays(t,-i),x=S.logs[d];h+='<div class="day'+(x?(x.st==='ok'?' ok':' rel'):'')+(i===0?' today':'')+'" title="'+fmt(d)+'">'+Number(d.slice(8))+'</div>';}
+  $('#cal').innerHTML=h;
+  // hitos
+  $('#miles').innerHTML=MILES.map(m=>'<div class="mile'+(n>=m[0]?' done':'')+(next&&m[0]===next[0]?' next':'')+'"><b>'+m[0]+'<small>'+(m[0]===1?'día':'días')+'</small></b><p>'+(n>=m[0]?'✓ ':'')+esc(m[1])+'</p></div>').join('');
+  renderQuote();
+}
+const allQuotes=()=>QUOTES.concat(S.phrases.map(p=>[p,'Mi frase']));
+function renderQuote(){
+  const q=allQuotes(); let i=S.qi;
+  if(i==null||i>=q.length){const d=today();i=(Number(d.replace(/-/g,''))%q.length);}
+  $('#qotd').innerHTML=esc(q[i][0])+'<cite>'+esc(q[i][1])+'</cite>';
+}
+function renderLog(){
+  const keys=Object.keys(S.logs).sort().reverse().slice(0,40);
+  $('#log').innerHTML=keys.length?keys.map(k=>{const l=S.logs[k];
+    const bits=[ 'Impulso '+l.urge+'/10', l.trig?'Disparador: '+l.trig:null, 'Energía '+l.en+' · Concentr. '+l.fo+' · Social '+l.so ].filter(Boolean).join(' · ');
+    return '<div class="entry"><span class="pill '+l.st+'">'+(l.st==='ok'?'Limpio':'Recaída')+'</span><div style="display:grid;gap:3px;min-width:0"><span class="meta">'+fmt(k)+' — '+esc(bits)+'</span>'+(l.win?'<p><b>Logro:</b> '+esc(l.win)+'</p>':'')+(l.did&&l.did.length?'<p class="muted">En su lugar: '+esc(l.did.join(', '))+'</p>':'')+(l.learn?'<p class="muted">'+esc(l.learn)+'</p>':'')+'</div></div>';}).join('')
+    :'<p class="muted">Aún no hay registros. Guarda el primero arriba.</p>';
+}
+function renderShield(){
+  const all=SHIELD.flatMap(c=>c[1]); const on=all.filter(x=>S.shield[x[0]]).length;
+  $('#shieldScore').textContent=on+'/'+all.length; $('#shieldBar').style.width=Math.round(on/all.length*100)+'%';
+  $('#shieldList').innerHTML='<span class="anno">C2 · Checklist de barreras por categoría</span>'+SHIELD.map(c=>'<h3 style="margin:14px 0 4px">'+c[0]+'</h3>'+c[1].map(x=>'<label class="check"><input type="checkbox" id="sh-'+x[0]+'" data-sh="'+x[0]+'"'+(S.shield[x[0]]?' checked':'')+'><span><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></span></label>').join('')).join('');
+  $('#ifthen').innerHTML=S.plans.map((p,i)=>'<span class="k">Si</span><input type="text" id="if'+i+'" data-p="'+i+'" data-k="0" value="'+esc(p[0])+'"><span class="k">Entonces</span><input type="text" id="th'+i+'" data-p="'+i+'" data-k="1" value="'+esc(p[1])+'" style="margin-bottom:10px">').join('');
+}
+function renderPhrases(){
+  $('#phrases').innerHTML=allQuotes().map(q=>'<div class="phrase">'+esc(q[0])+'<cite>'+esc(q[1])+'</cite></div>').join('');
+}
+function renderAll(){renderHoy();renderLog();renderShield();renderPhrases();}
+
+/* ---- tabs ---- */
+function go(tab){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  document.querySelectorAll('section.panel').forEach(p=>p.hidden=p.id!=='p-'+tab);
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>go(b.dataset.tab)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+const h=(location.hash||'').slice(1); if(['hoy','registro','escudo','frases','ciencia','sos'].includes(h))go(h);
+
+$('#annoBtn').addEventListener('click',e=>{const on=document.body.classList.toggle('show-anno');e.currentTarget.setAttribute('aria-pressed',on);e.currentTarget.textContent=on?'Ocultar anotaciones':'Ver anotaciones';});
+
+$('#startReal').addEventListener('click',()=>{S=freshState();save();renderAll();$('#todayMsg').textContent='Registro iniciado. Día 0: empieza el camino.';});
+
+$('#cleanBtn').addEventListener('click',()=>{const t=today();S.logs[t]=Object.assign({st:'ok',urge:0,trig:'',did:[],en:3,fo:3,so:3,sl:'6–7',win:'',learn:''},S.logs[t]||{},{st:'ok'});save();renderAll();$('#todayMsg').textContent='Día marcado. Bien hecho: un día más eligiendo tú.';});
+$('#relBtn').addEventListener('click',()=>{$('#relConfirm').hidden=false;});
+$('#relNo').addEventListener('click',()=>{$('#relConfirm').hidden=true;});
+$('#relYes').addEventListener('click',()=>{const t=today();relapse(t);S.logs[t]=Object.assign({urge:8,trig:'',did:[],en:3,fo:3,so:3,sl:'6–7',win:'',learn:''},S.logs[t]||{},{st:'rel'});$('#relConfirm').hidden=true;save();renderAll();$('#todayMsg').textContent='Contador a cero. Anota en el registro qué lo disparó: es tu mejor información.';});
+$('#qNext').addEventListener('click',()=>{const q=allQuotes();const cur=S.qi==null?(Number(today().replace(/-/g,''))%q.length):S.qi;S.qi=(cur+1)%q.length;save();renderQuote();});
+
+/* ---- formulario ---- */
+$('#fDate').value=today();
+[['fUrge','vUrge'],['fEn','vEn'],['fFo','vFo'],['fSo','vSo']].forEach(([a,b])=>$('#'+a).addEventListener('input',e=>$('#'+b).textContent=e.target.value));
+$('#logForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const d=$('#fDate').value||today(); const st=$('#stRel').checked?'rel':'ok';
+  S.logs[d]={st,urge:+$('#fUrge').value,trig:$('#fTrig').value,did:[...document.querySelectorAll('#fDid input:checked')].map(x=>x.value),en:+$('#fEn').value,fo:+$('#fFo').value,so:+$('#fSo').value,sl:$('#fSl').value,win:$('#fWin').value.trim(),learn:$('#fLearn').value.trim()};
+  if(S.demo)S.demo=false;
+  if(st==='rel'&&diff(S.start,d)>=0)relapse(d);
+  save();renderAll();
+  $('#saveMsg').textContent=st==='ok'?'Guardado. Otro día que cuenta.':'Guardado. Revisa el disparador y ajusta tu escudo.';
+  $('#fWin').value='';$('#fLearn').value='';document.querySelectorAll('#fDid input').forEach(x=>x.checked=false);
+});
+
+/* ---- escudo ---- */
+$('#shieldList').addEventListener('change',e=>{const k=e.target.dataset.sh;if(!k)return;S.shield[k]=e.target.checked;save();renderShield();});
+$('#ifthen').addEventListener('input',e=>{const p=e.target.dataset.p;if(p==null)return;S.plans[p][+e.target.dataset.k]=e.target.value;save();});
+
+/* ---- frases ---- */
+$('#phForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#phIn').value.trim();if(!v)return;S.phrases.push(v);$('#phIn').value='';save();renderPhrases();});
+
+/* ---- SOS ---- */
+const TOTAL=600, C=326.7; let left=TOTAL, timer=null, tick=0;
+const PH=['Inhala… 4','Mantén… 4','Exhala… 6'], PL=[4,4,6];
+function drawSos(){$('#sosTime').textContent=Math.floor(left/60)+':'+pad(left%60);$('#ringArc').style.strokeDashoffset=String(C*(1-left/TOTAL));}
+function phase(){let t=tick%14;let i=t<4?0:t<8?1:2;return PH[i];}
+$('#sosStart').addEventListener('click',()=>{
+  if(timer){clearInterval(timer);timer=null;$('#sosStart').textContent='Seguir';$('#breath').textContent='En pausa';return;}
+  if(left<=0)left=TOTAL;
+  $('#sosStart').textContent='Pausar';
+  timer=setInterval(()=>{left--;tick++;drawSos();$('#breath').textContent=phase();
+    if(left<=0){clearInterval(timer);timer=null;$('#sosStart').textContent='Otra vez';$('#breath').textContent='La ola ha pasado. Lo has conseguido.';}},1000);
+  $('#breath').textContent=phase();
+});
+$('#sosReset').addEventListener('click',()=>{clearInterval(timer);timer=null;left=TOTAL;tick=0;drawSos();$('#sosStart').textContent='Empezar 10 minutos';$('#breath').textContent='Pulsa empezar';});
+drawSos();
+
+renderAll();
+})();
+</script>
+</body>
+</html>
